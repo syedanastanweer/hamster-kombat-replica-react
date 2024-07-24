@@ -10,6 +10,15 @@ import Friends from './icons/Friends';
 import Coins from './icons/Coins';
 import WalletConfig from './WalletConfig';
 import WalletCallback from './WalletCallback';
+import Earn from './Earn';
+import FriendsPage from './Friends';
+import Users from './Users';
+import { v4 as uuidv4 } from 'uuid';
+
+// Utility function to create a slug from a string
+const createSlug = (str: string): string => {
+  return str.toLowerCase().replace(/[^a-z0-9]+/g, '');
+};
 
 const App: React.FC = () => {
   const levelNames = [
@@ -152,7 +161,7 @@ const App: React.FC = () => {
     return `+${profit}`;
   };
 
-  const handleNameSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleNameSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const nameInput = e.currentTarget.elements.namedItem('name') as HTMLInputElement;
     const name = nameInput.value.trim();
@@ -160,6 +169,21 @@ const App: React.FC = () => {
       setUserName(name);
       localStorage.setItem('userName', name);
       setIsNameModalOpen(false);
+
+      // Add user to the server
+      const userId = uuidv4();
+      const newUser = `${userId},${name}`;
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/save-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user: newUser }),
+      });
+
+      if (!response.ok) {
+        alert('Failed to add user.');
+      }
     }
   };
 
@@ -168,6 +192,9 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/wallet-config" element={<WalletConfig />} />
         <Route path="/wallet-callback" element={<WalletCallback />} />
+        <Route path="/earn/:slug" element={<Earn />} />
+        <Route path="/friends" element={<FriendsPage />} />
+        <Route path="/users" element={<Users />} />
         <Route path="/" element={
           <div className="bg-black flex justify-center">
             {isNameModalOpen && (
@@ -274,27 +301,27 @@ const App: React.FC = () => {
             </div>
 
             {/* Bottom fixed div */}
-            <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl bg-[#272a2f] flex justify-around items-center z-50 rounded-3xl text-xs btm-2rem">
-              <div className="text-center text-[#85827d] w-1/5 bg-[#1c1f24] m-1 p-2 rounded-2xl">
+            <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl bg-[#272a2f] flex justify-around items-center z-50 rounded-3xl text-xs">
+              <Link to="/" className="text-center text-[#85827d] w-1/5 bg-[#1c1f24] m-1 p-2 rounded-2xl">
                 <img src={binanceLogo} alt="Exchange" className="w-8 h-8 mx-auto" />
                 <p className="mt-1">Exchange</p>
-              </div>
-              <div className="text-center text-[#85827d] w-1/5">
+              </Link>
+              <Link to="/#" className="text-center text-[#85827d] w-1/5">
                 <Mine className="w-8 h-8 mx-auto" />
                 <p className="mt-1">Mine</p>
-              </div>
-              <div className="text-center text-[#85827d] w-1/5">
+              </Link>
+              <Link to="/friends" className="text-center text-[#85827d] w-1/5">
                 <Friends className="w-8 h-8 mx-auto" />
                 <p className="mt-1">Friends</p>
-              </div>
-              <div className="text-center text-[#85827d] w-1/5">
+              </Link>
+              <Link to={`/earn/${createSlug(userName)}`} className="text-center text-[#85827d] w-1/5">
                 <Coins className="w-8 h-8 mx-auto" />
                 <p className="mt-1">Earn</p>
-              </div>
-              <div className="text-center text-[#85827d] w-1/5">
+              </Link>
+              <Link to="/#" className="text-center text-[#85827d] w-1/5">
                 <img src={hamsterCoin} alt="Airdrop" className="w-8 h-8 mx-auto" />
                 <p className="mt-1">Airdrop</p>
-              </div>
+              </Link>
             </div>
 
             {clicks.map((click) => (
