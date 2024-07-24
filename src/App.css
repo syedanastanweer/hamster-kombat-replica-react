@@ -52,6 +52,10 @@
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
+.btm-2rem{
+  margin-bottom: 2rem;
+}
+
 @keyframes float {
   0% {
     opacity: 1;

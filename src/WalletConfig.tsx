@@ -15,10 +15,10 @@ const WalletConfig: React.FC = () => {
 
   const handleAddWallet = () => {
     setIsFetching(true);
-    // Construct the deep link URL with a callback URL to your app
-    const callbackUrl = `${window.location.origin}/wallet-callback`;
-    const deepLinkUrl = `tonkeeper://wallet?callback_url=${encodeURIComponent(callbackUrl)}`;
-    window.location.href = deepLinkUrl;
+    // Construct the intent URL to open TON Keeper app on Android
+    const callbackUrl = `${window.location.origin}/wallet-callback`; // Change this to your actual domain in production
+    const intentUrl = `intent://wallet?callback_url=${encodeURIComponent(callbackUrl)}#Intent;scheme=tonkeeper;package=com.ton_keeper;end`;
+    window.location.href = intentUrl;
   };
 
   const handleBack = () => {
