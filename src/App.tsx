@@ -9,6 +9,7 @@ import Mine from './icons/Mine';
 import Friends from './icons/Friends';
 import Coins from './icons/Coins';
 import WalletConfig from './WalletConfig';
+import WalletCallback from './WalletCallback';
 
 const App: React.FC = () => {
   const levelNames = [
@@ -110,7 +111,7 @@ const App: React.FC = () => {
   };
 
   const calculateProgress = () => {
-    const levelIndex = levelMinPoints.findIndex((minPoints, index) => {
+    const levelIndex = levelMinPoints.findIndex((_, index) => {
       return points < (levelMinPoints[index + 1] || Infinity);
     });
     if (levelIndex === -1 || levelIndex === levelNames.length - 1) {
@@ -123,7 +124,7 @@ const App: React.FC = () => {
   };
 
   const currentLevelIndex = () => {
-    return levelMinPoints.findIndex((minPoints, index) => {
+    return levelMinPoints.findIndex((_, index) => {
       return points < (levelMinPoints[index + 1] || Infinity);
     });
   };
@@ -166,6 +167,7 @@ const App: React.FC = () => {
     <Router>
       <Routes>
         <Route path="/wallet-config" element={<WalletConfig />} />
+        <Route path="/wallet-callback" element={<WalletCallback />} />
         <Route path="/" element={
           <div className="bg-black flex justify-center">
             {isNameModalOpen && (
