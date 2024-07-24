@@ -17,7 +17,7 @@ const WalletConfig: React.FC = () => {
     setIsFetching(true);
     // Construct the deep link URL with a callback URL to your app
     const callbackUrl = `${window.location.origin}/wallet-callback`;
-    const deepLinkUrl = `tonwallet://add_wallet?callback_url=${encodeURIComponent(callbackUrl)}`;
+    const deepLinkUrl = `tonkeeper://wallet?callback_url=${encodeURIComponent(callbackUrl)}`;
     window.location.href = deepLinkUrl;
   };
 
