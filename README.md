@@ -18,8 +18,8 @@ To get started with either the initial setup or the final version, follow these 
 1. **Clone the Repository**:
 
     ```bash
-    git clone https://github.com/nikandr-surkov/Hamster-Kombat-Telegram-Mini-App-Clone.git
-    cd Hamster-Kombat-Telegram-Mini-App-Clone
+    git clone https://github.com/syedanastanweer/hk-clone.git
+    cd hk-clone
     ```
 
 ### Initial Setup
