@@ -1,13 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 const Earn: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const referralUrl = `${window.location.origin}/?ref=${slug}`;
+  const referralUrl = `https://t.me/hkswap_bot?start=${slug}`;
+  const [referrer, setReferrer] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Save the referrer in localStorage when someone accesses the referral link
+    // Check if the user has been referred by someone
     if (slug) {
       localStorage.setItem('referrer', slug);
     }

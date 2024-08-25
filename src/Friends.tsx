@@ -4,9 +4,8 @@ const FriendsPage: React.FC = () => {
   const [referrer, setReferrer] = useState<string | null>(null);
 
   useEffect(() => {
-    const referrerSlug = localStorage.getItem('referredBy');
+    const referrerSlug = localStorage.getItem('referrer');
     if (referrerSlug) {
-      // Assuming you have a way to get the referrer's name from their slug
       setReferrer(referrerSlug);
     }
   }, []);

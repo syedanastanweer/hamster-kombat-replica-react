@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link, useSearchParams } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, useNavigate } from 'react-router-dom';
 import './App.css';
 import Hamster from './icons/Hamster';
 import { binanceLogo, dailyCipher, dailyCombo, dailyReward, dollarCoin, hamsterCoin, mainCharacter } from './images';
@@ -13,6 +13,9 @@ import WalletCallback from './WalletCallback';
 import Earn from './Earn';
 import FriendsPage from './Friends';
 import Users from './Users';
+import MinePage from './Mine';
+import AirdropPage from './Airdrop';
+import { v4 as uuidv4 } from 'uuid';
 
 // Utility function to create a slug from a string
 const createSlug = (str: string): string => {
@@ -21,13 +24,46 @@ const createSlug = (str: string): string => {
 
 const App: React.FC = () => {
   const levelNames = [
-    "Bronze", "Silver", "Gold", "Platinum", "Diamond", "Epic", 
-    "Legendary", "Master", "GrandMaster", "Lord"
+    "Bronze",    // From 0 to 4999 coins
+    "Silver",    // From 5000 coins to 24,999 coins
+    "Gold",      // From 25,000 coins to 99,999 coins
+    "Platinum",  // From 100,000 coins to 999,999 coins
+    "Diamond",   // From 1,000,000 coins to 2,000,000 coins
+    "Epic",      // From 2,000,000 coins to 10,000,000 coins
+    "Legendary", // From 10,000,000 coins to 50,000,000 coins
+    "Master",    // From 50,000,000 coins to 100,000,000 coins
+    "GrandMaster", // From 100,000,000 coins to 1,000,000,000 coins
+    "Lord"       // From 1,000,000,000 coins to ∞
   ];
 
   const levelMinPoints = [
-    0, 5000, 25000, 100000, 1000000, 2000000, 10000000, 50000000, 100000000, 1000000000
+    0,        // Bronze
+    5000,     // Silver
+    25000,    // Gold
+    100000,   // Platinum
+    1000000,  // Diamond
+    2000000,  // Epic
+    10000000, // Legendary
+    50000000, // Master
+    100000000,// GrandMaster
+    1000000000// Lord
   ];
+
+  const profitPerHourByLevel = [
+    100,      // Bronze
+    200,      // Silver
+    500,      // Gold
+    1000,     // Platinum
+    5000,     // Diamond
+    10000,    // Epic
+    50000,    // Legendary
+    100000,   // Master
+    200000,   // GrandMaster
+    500000    // Lord
+  ];
+
+  // Adjusted pointsToAdd logic for levels
+  const pointsToAddByLevel = [1, 2, 3, 5, 7, 10, 12, 15, 18, 20];
 
   const [points, setPoints] = useState(() => {
     const savedPoints = localStorage.getItem('points');
@@ -40,12 +76,34 @@ const App: React.FC = () => {
   const [showDailyBoxes, setShowDailyBoxes] = useState(false);
   const [isNameModalOpen, setIsNameModalOpen] = useState(!userName);
 
-  const pointsToAdd = 1;
-  const profitPerHour = 126420;
-
+  // State for daily timers
   const [dailyRewardTimeLeft, setDailyRewardTimeLeft] = useState("");
   const [dailyCipherTimeLeft, setDailyCipherTimeLeft] = useState("");
   const [dailyComboTimeLeft, setDailyComboTimeLeft] = useState("");
+
+  const currentLevelIndex = () => {
+    return levelMinPoints.findIndex((_, index) => {
+      return points < (levelMinPoints[index + 1] || Infinity);
+    });
+  };
+
+  const calculateProgress = () => {
+    const levelIndex = currentLevelIndex();
+    if (levelIndex === levelNames.length - 1) {
+      return points >= levelMinPoints[levelIndex] ? 100 : 0;
+    }
+    const currentLevelMin = levelMinPoints[levelIndex];
+    const nextLevelMin = levelMinPoints[levelIndex + 1];
+    const progress = ((points - currentLevelMin) / (nextLevelMin - currentLevelMin)) * 100;
+    return Math.min(progress, 100);
+  };
+
+  const currentLevel = () => {
+    return levelNames[currentLevelIndex()] || "Bronze";
+  };
+
+  const profitPerHour = profitPerHourByLevel[currentLevelIndex()];
+  const pointsToAdd = pointsToAddByLevel[currentLevelIndex()];
 
   const calculateTimeLeft = (targetHour: number) => {
     const now = new Date();
@@ -79,6 +137,24 @@ const App: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const pointsPerSecond = Math.floor(profitPerHour / 3600);
+    const interval = setInterval(() => {
+      setPoints(prevPoints => {
+        const newPoints = prevPoints + pointsPerSecond;
+        localStorage.setItem('points', newPoints.toString());
+        return newPoints;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [profitPerHour]);
+
+  const formatProfitPerHour = (profit: number) => {
+    if (profit >= 1000000) return `+${(profit / 1000000).toFixed(2)}M`;
+    if (profit >= 1000) return `+${(profit / 1000).toFixed(2)}K`;
+    return `+${profit}`;
+  };
+
   const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
@@ -101,49 +177,7 @@ const App: React.FC = () => {
     setClicks((prevClicks) => prevClicks.filter(click => click.id !== id));
   };
 
-  const calculateProgress = () => {
-    const levelIndex = levelMinPoints.findIndex((_, index) => {
-      return points < (levelMinPoints[index + 1] || Infinity);
-    });
-    if (levelIndex === -1 || levelIndex === levelNames.length - 1) {
-      return 100;
-    }
-    const currentLevelMin = levelMinPoints[levelIndex];
-    const nextLevelMin = levelMinPoints[levelIndex + 1];
-    const progress = ((points - currentLevelMin) / (nextLevelMin - currentLevelMin)) * 100;
-    return Math.min(progress, 100);
-  };
-
-  const currentLevelIndex = () => {
-    return levelMinPoints.findIndex((_, index) => {
-      return points < (levelMinPoints[index + 1] || Infinity);
-    });
-  };
-
-  const currentLevel = () => {
-    return levelNames[currentLevelIndex()] || "Bronze";
-  };
-
-  useEffect(() => {
-    const pointsPerSecond = Math.floor(profitPerHour / 3600);
-    const interval = setInterval(() => {
-      setPoints(prevPoints => {
-        const newPoints = prevPoints + pointsPerSecond;
-        localStorage.setItem('points', newPoints.toString());
-        return newPoints;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [profitPerHour]);
-
-  const formatProfitPerHour = (profit: number) => {
-    if (profit >= 1000000000) return `+${(profit / 1000000000).toFixed(2)}B`;
-    if (profit >= 1000000) return `+${(profit / 1000000).toFixed(2)}M`;
-    if (profit >= 1000) return `+${(profit / 1000).toFixed(2)}K`;
-    return `+${profit}`;
-  };
-
-  const handleNameSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleNameSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const nameInput = e.currentTarget.elements.namedItem('name') as HTMLInputElement;
     const name = nameInput.value.trim();
@@ -152,31 +186,29 @@ const App: React.FC = () => {
       localStorage.setItem('userName', name);
       setIsNameModalOpen(false);
 
-      // Save the user to the list
-      const savedUsers = localStorage.getItem('users');
-      const users = savedUsers ? JSON.parse(savedUsers) : [];
-      if (!users.includes(name)) {
-        users.push(name);
-        localStorage.setItem('users', JSON.stringify(users));
+      // Add user to the server
+      const userId = uuidv4();
+      const newUser = `${userId},${name}`;
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/save-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user: newUser }),
+      });
+
+      if (!response.ok) {
+        alert('Failed to add user.');
       }
 
-      // Check if there's a referrer
-      const referrer = localStorage.getItem('referrer');
-      if (referrer) {
-        console.log(`${userName} was referred by ${referrer}`);
-        localStorage.setItem('referredBy', referrer);
-      }
+      // Add user to local storage
+      const existingUsers = localStorage.getItem('users');
+      const usersList = existingUsers ? JSON.parse(existingUsers) : [];
+      const finalName = usersList.includes(name) ? `${name}_${uuidv4()}` : name;
+      usersList.push(finalName);
+      localStorage.setItem('users', JSON.stringify(usersList));
     }
   };
-
-  const [searchParams] = useSearchParams();
-
-  useEffect(() => {
-    const ref = searchParams.get('ref');
-    if (ref) {
-      localStorage.setItem('referrer', ref);
-    }
-  }, [searchParams]);
 
   return (
     <Router>
@@ -186,6 +218,8 @@ const App: React.FC = () => {
         <Route path="/earn/:slug" element={<Earn />} />
         <Route path="/friends" element={<FriendsPage />} />
         <Route path="/users" element={<Users />} />
+        <Route path="/mine" element={<MinePage points={points} />} />
+        <Route path="/airdrop" element={<AirdropPage />} />
         <Route path="/" element={
           <div className="bg-black flex justify-center">
             {isNameModalOpen && (
@@ -297,7 +331,7 @@ const App: React.FC = () => {
                 <img src={binanceLogo} alt="Exchange" className="w-8 h-8 mx-auto" />
                 <p className="mt-1">Exchange</p>
               </Link>
-              <Link to="/#" className="text-center text-[#85827d] w-1/5">
+              <Link to="/mine" className="text-center text-[#85827d] w-1/5">
                 <Mine className="w-8 h-8 mx-auto" />
                 <p className="mt-1">Mine</p>
               </Link>
@@ -309,7 +343,7 @@ const App: React.FC = () => {
                 <Coins className="w-8 h-8 mx-auto" />
                 <p className="mt-1">Earn</p>
               </Link>
-              <Link to="/#" className="text-center text-[#85827d] w-1/5">
+              <Link to="/airdrop" className="text-center text-[#85827d] w-1/5">
                 <img src={hamsterCoin} alt="Airdrop" className="w-8 h-8 mx-auto" />
                 <p className="mt-1">Airdrop</p>
               </Link>
