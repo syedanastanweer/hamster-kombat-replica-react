@@ -1,43 +1,34 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 
-const Friends: React.FC = () => {
-  const [userList, setUserList] = useState<string[]>([]);
-  const navigate = useNavigate();
+const FriendsPage: React.FC = () => {
+  const [referrer, setReferrer] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/get-users`);
-      if (response.ok) {
-        const data = await response.json();
-        setUserList(data.users);
-      } else {
-        alert('Failed to fetch users.');
-      }
-    };
-
-    fetchUsers();
+    const referrerSlug = localStorage.getItem('referredBy');
+    if (referrerSlug) {
+      // Assuming you have a way to get the referrer's name from their slug
+      setReferrer(referrerSlug);
+    }
   }, []);
 
   return (
     <div className="bg-black text-white h-screen flex flex-col items-center justify-center">
       <div className="text-center">
-        <h1 className="text-2xl mb-4">Friends</h1>
+        <h1 className="text-2xl mb-4">Your Referrer</h1>
+        {referrer ? (
+          <p className="text-lg">You were referred by: {referrer}</p>
+        ) : (
+          <p className="text-lg">No referrer found.</p>
+        )}
         <button
-          onClick={() => navigate('/')}
+          onClick={() => window.history.back()}
           className="mt-4 px-4 py-2 bg-gray-700 text-white rounded"
         >
           Back
         </button>
-        <div className="mt-4">
-          <h2 className="text-xl">User List</h2>
-          {userList.map((user, index) => (
-            <p key={index}>{user.split(',')[1]}</p>
-          ))}
-        </div>
       </div>
     </div>
   );
 };
 
-export default Friends;
+export default FriendsPage;

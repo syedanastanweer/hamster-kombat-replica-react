@@ -1,9 +1,17 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 
 const Earn: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const referralUrl = `${window.location.origin}/ref/${slug}`;
+  const referralUrl = `${window.location.origin}/?ref=${slug}`;
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Save the referrer in localStorage when someone accesses the referral link
+    if (slug) {
+      localStorage.setItem('referrer', slug);
+    }
+  }, [slug]);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(referralUrl).then(() => {
@@ -33,7 +41,7 @@ const Earn: React.FC = () => {
           </button>
         </div>
         <button
-          onClick={() => window.history.back()}
+          onClick={() => navigate(-1)}
           className="mt-4 px-4 py-2 bg-gray-700 text-white rounded"
         >
           Back

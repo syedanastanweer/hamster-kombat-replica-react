@@ -161,7 +161,7 @@ const App: React.FC = () => {
     return `+${profit}`;
   };
 
-  const handleNameSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleNameSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const nameInput = e.currentTarget.elements.namedItem('name') as HTMLInputElement;
     const name = nameInput.value.trim();
@@ -170,19 +170,18 @@ const App: React.FC = () => {
       localStorage.setItem('userName', name);
       setIsNameModalOpen(false);
 
-      // Add user to the server
-      const userId = uuidv4();
-      const newUser = `${userId},${name}`;
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/save-user`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user: newUser }),
-      });
+      // Save the user to the list
+      const savedUsers = localStorage.getItem('users');
+      const users = savedUsers ? JSON.parse(savedUsers) : [];
+      if (!users.includes(name)) {
+        users.push(name);
+        localStorage.setItem('users', JSON.stringify(users));
+      }
 
-      if (!response.ok) {
-        alert('Failed to add user.');
+      // Check if there's a referrer
+      const referrer = localStorage.getItem('referrer');
+      if (referrer) {
+        console.log(`${userName} was referred by ${referrer}`);
       }
     }
   };
