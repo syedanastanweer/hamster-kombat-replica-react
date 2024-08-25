@@ -71,12 +71,7 @@ const MinePage: React.FC<MinePageProps> = ({ points }) => {
                   </div>
                 );
               })}
-              <button
-                onClick={() => navigate(-1)}
-                className="mt-auto px-4 py-2 bg-gray-700 text-white rounded"
-              >
-                Back
-              </button>
+
             </div>
           </div>
         </div>
