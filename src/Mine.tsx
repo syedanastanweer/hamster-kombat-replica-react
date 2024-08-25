@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, Link } from 'react-router-dom'; // Remove `useNavigate` if not needed
+import { Link } from 'react-router-dom';
 import { binanceLogo, hamsterCoin } from './images';
 import Mine from './icons/Mine';
 import Friends from './icons/Friends';
@@ -15,8 +15,6 @@ interface MinePageProps {
 }
 
 const MinePage: React.FC<MinePageProps> = ({ points }) => {
-  // Removed the unused `navigate` declaration
-
   const levelNames = [
     "Bronze", "Silver", "Gold", "Platinum", "Diamond",
     "Epic", "Legendary", "Master", "GrandMaster", "Lord"
