@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const Users: React.FC = () => {
-  const [users, setUsers] = useState<string[]>([]);
+  const [users, setUsers] = useState<{ id: string, name: string }[]>([]);
 
   useEffect(() => {
     const storedUsers = localStorage.getItem('users');
@@ -16,7 +16,7 @@ const Users: React.FC = () => {
         <h1 className="text-2xl mb-4">All Users</h1>
         <ul>
           {users.map((user, index) => (
-            <li key={index} className="text-lg">{user}</li>
+            <li key={user.id} className="text-lg">{user.name}</li>
           ))}
         </ul>
         <button

@@ -52,7 +52,7 @@
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
-.btm-2rem{
+.btm-2rem {
   margin-bottom: 2.5rem;
 }
 
@@ -66,4 +66,12 @@
     opacity: 0;
     transform: translateY(-50px);
   }
+}
+
+.mt-4rem {
+  margin-top: 4rem;
+}
+
+.w-80-per {
+  width: 80%;
 }

@@ -19,7 +19,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 // Utility function to create a slug from a string
 const createSlug = (str: string): string => {
-  return str.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  return str.toLowerCase().replace(/\s+/g, '');
 };
 
 const App: React.FC = () => {
@@ -69,9 +69,13 @@ const App: React.FC = () => {
     const savedPoints = localStorage.getItem('points');
     return savedPoints ? parseInt(savedPoints, 10) : 0;
   });
+
   const [userName, setUserName] = useState(() => {
-    return localStorage.getItem('userName') || '';
+    // Ensure the username is always retrieved in slug form
+    const storedName = localStorage.getItem('userName');
+    return storedName ? createSlug(storedName) : '';
   });
+
   const [clicks, setClicks] = useState<{ id: number, x: number, y: number }[]>([]);
   const [showDailyBoxes, setShowDailyBoxes] = useState(false);
   const [isNameModalOpen, setIsNameModalOpen] = useState(!userName);
@@ -181,32 +185,42 @@ const App: React.FC = () => {
     e.preventDefault();
     const nameInput = e.currentTarget.elements.namedItem('name') as HTMLInputElement;
     const name = nameInput.value.trim();
-    if (name) {
-      setUserName(name);
-      localStorage.setItem('userName', name);
+    const slug = createSlug(name);
+
+    if (slug) {
+      setUserName(slug);
+      localStorage.setItem('userName', slug); // Store slugified username
       setIsNameModalOpen(false);
 
-      // Add user to the server
+      // Add user to the local storage
       const userId = uuidv4();
-      const newUser = `${userId},${name}`;
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/save-user`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user: newUser }),
-      });
-
-      if (!response.ok) {
-        alert('Failed to add user.');
-      }
-
-      // Add user to local storage
+      const newUser = { id: userId, name: slug }; // Store the slug as the name
       const existingUsers = localStorage.getItem('users');
       const usersList = existingUsers ? JSON.parse(existingUsers) : [];
-      const finalName = usersList.includes(name) ? `${name}_${uuidv4()}` : name;
-      usersList.push(finalName);
+      usersList.push(newUser);
       localStorage.setItem('users', JSON.stringify(usersList));
+
+      // Store referrer info
+      const referrer = localStorage.getItem('referrer');
+      if (referrer) {
+        localStorage.setItem('referrerOf_' + userId, referrer);
+      }
+
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/save-user`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ user: newUser }),
+        });
+
+        if (!response.ok) {
+          alert('Failed to add user.');
+        }
+      } catch (error) {
+        console.error('Failed to add user:', error);
+      }
     }
   };
 
@@ -339,7 +353,7 @@ const App: React.FC = () => {
                 <Friends className="w-8 h-8 mx-auto" />
                 <p className="mt-1">Friends</p>
               </Link>
-              <Link to={`/earn/${createSlug(userName)}`} className="text-center text-[#85827d] w-1/5">
+              <Link to={`/earn/${userName}`} className="text-center text-[#85827d] w-1/5">
                 <Coins className="w-8 h-8 mx-auto" />
                 <p className="mt-1">Earn</p>
               </Link>
