@@ -1,10 +1,13 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface MinePageProps {
   points: number;
 }
 
 const MinePage: React.FC<MinePageProps> = ({ points }) => {
+  const navigate = useNavigate();
+
   const levelNames = [
     "Bronze",    // From 0 to 4999 coins
     "Silver",    // From 5000 coins to 24,999 coins
@@ -42,7 +45,7 @@ const MinePage: React.FC<MinePageProps> = ({ points }) => {
   };
 
   return (
-    <div className="bg-black text-white h-screen p-4">
+    <div className="bg-black text-white h-screen p-4 flex flex-col">
       <h1 className="text-2xl font-bold mb-4">Mining Levels</h1>
       {levelNames.map((level, index) => {
         const progress = calculateProgress(index);
@@ -68,6 +71,12 @@ const MinePage: React.FC<MinePageProps> = ({ points }) => {
           </div>
         );
       })}
+      <button
+        onClick={() => navigate(-1)}
+        className="mt-auto px-4 py-2 bg-gray-700 text-white rounded"
+      >
+        Back
+      </button>
     </div>
   );
 };
