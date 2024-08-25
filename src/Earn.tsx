@@ -4,7 +4,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 const Earn: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const referralUrl = `https://t.me/hkswap_bot?start=${slug}`;
-  const [referrer, setReferrer] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
