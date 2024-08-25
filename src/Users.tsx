@@ -15,7 +15,7 @@ const Users: React.FC = () => {
       <div className="text-center">
         <h1 className="text-2xl mb-4">All Users</h1>
         <ul>
-          {users.map((user, index) => (
+          {users.map((user) => (
             <li key={user.id} className="text-lg">{user.name}</li>
           ))}
         </ul>
