@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, useSearchParams } from 'react-router-dom';
 import './App.css';
 import Hamster from './icons/Hamster';
 import { binanceLogo, dailyCipher, dailyCombo, dailyReward, dollarCoin, hamsterCoin, mainCharacter } from './images';
@@ -13,7 +13,6 @@ import WalletCallback from './WalletCallback';
 import Earn from './Earn';
 import FriendsPage from './Friends';
 import Users from './Users';
-import { v4 as uuidv4 } from 'uuid';
 
 // Utility function to create a slug from a string
 const createSlug = (str: string): string => {
@@ -22,29 +21,12 @@ const createSlug = (str: string): string => {
 
 const App: React.FC = () => {
   const levelNames = [
-    "Bronze",    // From 0 to 4999 coins
-    "Silver",    // From 5000 coins to 24,999 coins
-    "Gold",      // From 25,000 coins to 99,999 coins
-    "Platinum",  // From 100,000 coins to 999,999 coins
-    "Diamond",   // From 1,000,000 coins to 2,000,000 coins
-    "Epic",      // From 2,000,000 coins to 10,000,000 coins
-    "Legendary", // From 10,000,000 coins to 50,000,000 coins
-    "Master",    // From 50,000,000 coins to 100,000,000 coins
-    "GrandMaster", // From 100,000,000 coins to 1,000,000,000 coins
-    "Lord"       // From 1,000,000,000 coins to ∞
+    "Bronze", "Silver", "Gold", "Platinum", "Diamond", "Epic", 
+    "Legendary", "Master", "GrandMaster", "Lord"
   ];
 
   const levelMinPoints = [
-    0,        // Bronze
-    5000,     // Silver
-    25000,    // Gold
-    100000,   // Platinum
-    1000000,  // Diamond
-    2000000,  // Epic
-    10000000, // Legendary
-    50000000, // Master
-    100000000,// GrandMaster
-    1000000000// Lord
+    0, 5000, 25000, 100000, 1000000, 2000000, 10000000, 50000000, 100000000, 1000000000
   ];
 
   const [points, setPoints] = useState(() => {
@@ -182,9 +164,19 @@ const App: React.FC = () => {
       const referrer = localStorage.getItem('referrer');
       if (referrer) {
         console.log(`${userName} was referred by ${referrer}`);
+        localStorage.setItem('referredBy', referrer);
       }
     }
   };
+
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const ref = searchParams.get('ref');
+    if (ref) {
+      localStorage.setItem('referrer', ref);
+    }
+  }, [searchParams]);
 
   return (
     <Router>
