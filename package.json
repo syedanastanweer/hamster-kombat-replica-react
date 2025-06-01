@@ -10,10 +10,21 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/android": "^7.2.0",
+    "@capacitor/cli": "^7.2.0",
+    "@capacitor/core": "^7.2.0",
+    "file-saver": "^2.0.5",
+    "firebase": "^11.6.1",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "react": "^18.3.1",
+    "react-data-table-component": "^7.7.0",
+    "react-data-table-component-extensions": "^1.6.0",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.25.1",
-    "uuid": "^10.0.0"
+    "react-toastify": "^11.0.5",
+    "uuid": "^10.0.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/node": "^20.14.12",

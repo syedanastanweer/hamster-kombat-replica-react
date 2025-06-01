@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">HK Swap</string>
+    <string name="title_activity_main">HK Swap</string>
+    <string name="package_name">com.softyfier.hkswap</string>
+    <string name="custom_url_scheme">com.softyfier.hkswap</string>
+</resources>

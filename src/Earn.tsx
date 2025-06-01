@@ -1,36 +1,70 @@
-import React, { useEffect } from 'react';
+// Earn.tsx
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { binanceLogo, hamsterCoin } from './images';
 import Mine from './icons/Mine';
 import Friends from './icons/Friends';
 import Coins from './icons/Coins';
 
-// Utility function to create a slug from a string
+// Utility: create slug from string
 const createSlug = (str: string): string => {
   return str.toLowerCase().replace(/\s+/g, '');
+};
+
+// Simulate user creation on page load (like after Firebase auth)
+const createOrLoadUser = (referrerCode?: string) => {
+  let users = JSON.parse(localStorage.getItem('users') || '[]');
+
+  // Load current user by userName in localStorage or create new
+  let currentUserName = localStorage.getItem('userName');
+  if (!currentUserName) {
+    // Generate random username (simulate signup)
+    currentUserName = 'User' + Math.floor(Math.random() * 10000);
+    localStorage.setItem('userName', currentUserName);
+  }
+
+  // Check if user exists
+  let user = users.find((u: any) => u.name === currentUserName);
+  if (!user) {
+    // Create new user with referralCode and referrer
+    const referralCode = createSlug(currentUserName);
+    user = {
+      name: currentUserName,
+      referralCode,
+      referrer: referrerCode || null,
+      id: referralCode,
+    };
+    users.push(user);
+    localStorage.setItem('users', JSON.stringify(users));
+  } else {
+    // Update referrer if not set and referrerCode given
+    if (!user.referrer && referrerCode && referrerCode !== user.referralCode) {
+      user.referrer = referrerCode;
+      localStorage.setItem('users', JSON.stringify(users));
+    }
+  }
+  return user;
 };
 
 const Earn: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
-  // Handle the case where slug might be undefined or incorrectly formatted
+  const [user, setUser] = useState<{name: string; referralCode: string; referrer: string | null} | null>(null);
+
+  // On mount, create/load user, handle referral from URL slug param
   useEffect(() => {
-    if (!slug || slug !== createSlug(slug)) {
-      const storedName = localStorage.getItem('userName');
-      const correctSlug = storedName ? createSlug(storedName) : '';
-      navigate(`/earn/${correctSlug}`);
+    // If slug is present, it is referrerCode
+    const userData = createOrLoadUser(slug);
+    setUser(userData);
+
+    // If URL slug doesn't match user referralCode, redirect to correct one
+    if (userData.referralCode !== slug) {
+      navigate(`/earn/${userData.referralCode}`, { replace: true });
     }
   }, [slug, navigate]);
 
-  const referralUrl = `https://t.me/hkswap_bot?start=${slug || ''}`;
-
-  useEffect(() => {
-    // Check if the user has been referred by someone
-    if (slug) {
-      localStorage.setItem('referrer', slug);
-    }
-  }, [slug]);
+  const referralUrl = `https://t.me/hkswap_bot?start=${user?.referralCode || ''}`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(referralUrl).then(() => {
@@ -40,6 +74,8 @@ const Earn: React.FC = () => {
     });
   };
 
+  if (!user) return null;
+
   return (
     <div className="bg-black flex justify-center">
       <div className="w-full bg-black text-white h-screen font-bold flex flex-col max-w-xl">
@@ -48,6 +84,7 @@ const Earn: React.FC = () => {
             <div className="bg-black text-white h-screen flex flex-col items-center justify-center rounded-t-[46px]">
               <div className="text-center">
                 <h1 className="text-2xl mb-4">Referral Program</h1>
+                <p>Your Referral Code: <strong>{user.referralCode}</strong></p>
                 <p className="mb-4">Share your referral link:</p>
                 <div className="flex items-center justify-center mb-4">
                   <input
@@ -88,7 +125,7 @@ const Earn: React.FC = () => {
           <Friends className="w-8 h-8 mx-auto" />
           <p className="mt-1">Friends</p>
         </Link>
-        <Link to={`/earn/${slug}`} className="text-center text-[#1c1f24] w-1/5 bg-[#f3ba2f] m-1 p-2 rounded-2xl">
+        <Link to={`/earn/${user.referralCode}`} className="text-center text-[#1c1f24] w-1/5 bg-[#f3ba2f] m-1 p-2 rounded-2xl">
           <Coins className="w-8 h-8 mx-auto" />
           <p className="mt-1">Earn</p>
         </Link>
