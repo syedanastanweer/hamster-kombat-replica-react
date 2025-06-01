@@ -47,9 +47,8 @@ const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [isAppReady, setIsAppReady] = useState(false);
   const [points, setPoints] = useState(0);
-  const [userName, setUserName] = useState('');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
   const [isNameModalOpen, setIsNameModalOpen] = useState(true);
   const [clicks, setClicks] = useState<{ id: number, x: number, y: number }[]>([]);
   const [showDailyBoxes, setShowDailyBoxes] = useState(false);
@@ -70,7 +69,6 @@ const App: React.FC = () => {
     const initializeApp = async () => {
       // Load all data from localStorage
       const savedPoints = localStorage.getItem('points');
-      const savedUserName = localStorage.getItem('userName');
       const savedUsername = localStorage.getItem('username');
       const savedEmail = localStorage.getItem('email');
       const savedAutoMiningEndTime = localStorage.getItem('autoMiningEndTime');
@@ -79,10 +77,9 @@ const App: React.FC = () => {
       setPoints(savedPoints ? parseInt(savedPoints, 10) : 0);
 
       // Set user data
-      setUserName(savedUserName || '');
       setUsername(savedUsername || '');
       setEmail(savedEmail || '');
-      setIsNameModalOpen(!savedUserName || !savedUsername || !savedEmail);
+      setIsNameModalOpen(!savedUsername || !savedEmail);
 
       // Set auto-mining state if active
       if (savedAutoMiningEndTime) {
@@ -276,10 +273,8 @@ const App: React.FC = () => {
     if (isLoginMode) {
       if (!userSnapshot.empty) {
         const userDoc = userSnapshot.docs[0].data();
-        localStorage.setItem('userName', userDoc.name);
         localStorage.setItem('username', userDoc.username);
         localStorage.setItem('email', userDoc.email);
-        setUserName(userDoc.name);
         setUsername(userDoc.username);
         setEmail(userDoc.email);
         setIsNameModalOpen(false);
@@ -300,10 +295,8 @@ const App: React.FC = () => {
         email: emailVal,
         createdAt: new Date().toISOString(),
       });
-      localStorage.setItem('userName', name);
       localStorage.setItem('username', usernameVal);
       localStorage.setItem('email', emailVal);
-      setUserName(name);
       setUsername(usernameVal);
       setEmail(emailVal);
       setIsNameModalOpen(false);
@@ -377,7 +370,7 @@ const App: React.FC = () => {
             <div className="w-full bg-black text-white h-screen font-bold flex flex-col max-w-xl">
               <div className="px-4 z-10">
                 <div className="flex items-center justify-between pt-4 px-2">
-                  <div className="text-white font-semibold text-lg">{userName}</div>
+                  <div className="text-white font-semibold text-lg">{username}</div>
                   <Link to="/profile">
                     <img src="https://cdn-icons-png.flaticon.com/512/9815/9815472.png" alt="Profile" className="w-8 h-8 rounded-full cursor-pointer" />
                   </Link>
@@ -520,7 +513,7 @@ const App: React.FC = () => {
                   <Friends className="w-8 h-8 mx-auto" />
                   <p className="mt-1">Friends</p>
                 </Link>
-                <Link to={`/earn/${userName}`} className="text-center text-[#85827d] w-1/5">
+                <Link to={`/earn/${username}`} className="text-center text-[#85827d] w-1/5">
                   <Coins className="w-8 h-8 mx-auto" />
                   <p className="mt-1">Earn</p>
                 </Link>
