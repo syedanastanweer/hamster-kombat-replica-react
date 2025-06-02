@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { binanceLogo, hamsterCoin } from './images';
 import Mine from './icons/Mine';
 import Friends from './icons/Friends';
 import Coins from './icons/Coins';
+import { doc, updateDoc, getFirestore } from 'firebase/firestore';
+import { toast } from 'react-toastify';
 
 // Utility to create slug for /earn route
 const createSlug = (str: string): string => {
@@ -11,10 +13,40 @@ const createSlug = (str: string): string => {
 };
 
 const ProfilePage: React.FC = () => {
-  const name = localStorage.getItem('userName') || '';
-  const username = localStorage.getItem('username') || '';
-  const email = localStorage.getItem('email') || '';
+  const [name, setName] = useState(localStorage.getItem('userName') || '');
+  const [username, setUsername] = useState(localStorage.getItem('username') || '');
+  const [email, setEmail] = useState(localStorage.getItem('email') || '');
+  const [isEditing, setIsEditing] = useState(false);
+  const [password, setPassword] = useState('');
   const slug = createSlug(name);
+
+  const handleSave = async () => {
+    try {
+      const db = getFirestore();
+      const userDocRef = doc(db, 'users', username); // Using username as document ID
+      
+      await updateDoc(userDocRef, {
+        name,
+        email,
+        ...(password && { password }) // Only update password if it's provided
+      });
+
+      // Update localStorage
+      localStorage.setItem('userName', name);
+      localStorage.setItem('email', email);
+      if (password) {
+        localStorage.setItem('password', password);
+      }
+
+      toast.success('Profile updated successfully!');
+      setIsEditing(false);
+    } catch (error) {
+      toast.error('Error updating profile');
+      console.error('Error updating profile:', error);
+    }
+  };
+
+  const isAdmin = email === 'test@gmail.com'; // Replace with your admin email
 
   return (
     <div className="bg-black flex justify-center">
@@ -27,39 +59,124 @@ const ProfilePage: React.FC = () => {
                 alt="Profile"
                 className="w-20 h-20 rounded-full border-4 border-[#f3ba2f] mb-4"
               />
-              <div className="text-center">
-                <h1 className="text-2xl mb-2">{name}</h1>
-                <p className="text-[#aaa] text-sm mb-1">@{username}</p>
-                <p className="text-[#aaa] text-sm">{email}</p>
-              </div>
+              
+              {isEditing ? (
+                <div className="w-full max-w-md">
+                  <div className="mb-4">
+                    <label className="block text-[#aaa] text-sm mb-1">Name</label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full p-2 bg-[#272a2f] rounded text-white"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-[#aaa] text-sm mb-1">Email</label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full p-2 bg-[#272a2f] rounded text-white"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-[#aaa] text-sm mb-1">New Password</label>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full p-2 bg-[#272a2f] rounded text-white"
+                      placeholder="Leave blank to keep current"
+                    />
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={handleSave}
+                      className="bg-[#f3ba2f] text-black px-4 py-2 rounded flex-1"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setIsEditing(false)}
+                      className="bg-[#272a2f] text-white px-4 py-2 rounded flex-1"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="text-center">
+                    <h1 className="text-2xl mb-2">{name}</h1>
+                    <p className="text-[#aaa] text-sm mb-1">@{username}</p>
+                    <p className="text-[#aaa] text-sm">{email}</p>
+                  </div>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="bg-[#f3ba2f] text-black px-4 py-2 rounded mt-6"
+                  >
+                    Edit Profile
+                  </button>
+                  
+                  {/* User History Section */}
+                  <div className="w-full max-w-md mt-8 bg-[#1d1d1d] p-4 rounded-lg">
+                    <h2 className="text-lg mb-4 text-[#f3ba2f]">Mining History</h2>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-[#aaa]">Total Points</p>
+                        <p>{localStorage.getItem('points') || '0'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[#aaa]">Auto Mining</p>
+                        <p>{localStorage.getItem('autoMiningCount') || '0'} times</p>
+                      </div>
+                      <div>
+                        <p className="text-[#aaa]">Manual Taps</p>
+                        <p>{localStorage.getItem('manualMiningCount') || '0'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[#aaa]">Last Active</p>
+                        <p>{new Date().toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Bottom Navigation */}
-
-      <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl bg-[#272a2f] flex justify-around items-center z-50 rounded-3xl text-xs">
-        <Link to="/" className="text-center text-[#85827d] w-1/5">
-          <img src={binanceLogo} alt="Exchange" className="w-8 h-8 mx-auto" />
-          <p className="mt-1">Exchange</p>
-        </Link>
-        <Link to="/mine" className="text-center text-[#85827d] w-1/5">
-          <Mine className="w-8 h-8 mx-auto" />
-          <p className="mt-1">Mine</p>
-        </Link>
-        <Link to="/friends" className="text-center text-[#85827d] w-1/5">
-          <Friends className="w-8 h-8 mx-auto" />
-          <p className="mt-1">Friends</p>
-        </Link>
-        <Link to={`/earn/${slug}`} className="text-center text-[#85827d] w-1/5">
-          <Coins className="w-8 h-8 mx-auto" />
-          <p className="mt-1">Earn</p>
-        </Link>
-        <Link to="/airdrop" className="text-center text-[#1c1f24] w-1/5 bg-[#f3ba2f] m-1 p-2 rounded-2xl">
-          <img src={hamsterCoin} alt="Airdrop" className="w-8 h-8 mx-auto" />
-          <p className="mt-1">Airdrop</p>
-        </Link>
+        {/* Bottom Navigation */}
+        <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl bg-[#272a2f] flex justify-around items-center z-50 rounded-3xl text-xs">
+          <Link to="/" className="text-center text-[#85827d] w-1/5">
+            <img src={binanceLogo} alt="Exchange" className="w-8 h-8 mx-auto" />
+            <p className="mt-1">Exchange</p>
+          </Link>
+          <Link to="/mine" className="text-center text-[#85827d] w-1/5">
+            <Mine className="w-8 h-8 mx-auto" />
+            <p className="mt-1">Mine</p>
+          </Link>
+          <Link to="/friends" className="text-center text-[#85827d] w-1/5">
+            <Friends className="w-8 h-8 mx-auto" />
+            <p className="mt-1">Friends</p>
+          </Link>
+          <Link to={`/earn/${slug}`} className="text-center text-[#85827d] w-1/5">
+            <Coins className="w-8 h-8 mx-auto" />
+            <p className="mt-1">Earn</p>
+          </Link>
+          {isAdmin ? (
+            <Link to="/admin" className="text-center text-[#1c1f24] w-1/5 bg-[#f3ba2f] m-1 p-2 rounded-2xl">
+              <img src={hamsterCoin} alt="Admin" className="w-8 h-8 mx-auto" />
+              <p className="mt-1">Admin</p>
+            </Link>
+          ) : (
+            <Link to="/airdrop" className="text-center text-[#1c1f24] w-1/5 bg-[#f3ba2f] m-1 p-2 rounded-2xl">
+              <img src={hamsterCoin} alt="Airdrop" className="w-8 h-8 mx-auto" />
+              <p className="mt-1">Airdrop</p>
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   );

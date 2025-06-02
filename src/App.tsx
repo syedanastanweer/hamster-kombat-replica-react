@@ -27,17 +27,17 @@ import SplashScreen from './SplashScreen';
 const App: React.FC = () => {
   // Level configuration
   const levelNames = [
-    "Bronze", "Silver", "Gold", "Platinum", "Diamond", 
+    "Bronze", "Silver", "Gold", "Platinum", "Diamond",
     "Epic", "Legendary", "Master", "GrandMaster", "Lord"
   ];
 
   const levelMinPoints = [
-    0, 5000, 25000, 100000, 1000000, 
+    0, 5000, 25000, 100000, 1000000,
     2000000, 10000000, 50000000, 100000000, 1000000000
   ];
 
   const profitPerHourByLevel = [
-    100, 200, 500, 1000, 5000, 
+    100, 200, 500, 1000, 5000,
     10000, 50000, 100000, 200000, 500000
   ];
 
@@ -72,7 +72,7 @@ const App: React.FC = () => {
       const savedUsername = localStorage.getItem('username');
       const savedEmail = localStorage.getItem('email');
       const savedAutoMiningEndTime = localStorage.getItem('autoMiningEndTime');
-      
+
       // Set points
       setPoints(savedPoints ? parseInt(savedPoints, 10) : 0);
 
@@ -87,7 +87,7 @@ const App: React.FC = () => {
         if (endTime > Date.now()) {
           setAutoMiningEndTime(endTime);
           setMiningMode('auto');
-          
+
           // Calculate initial progress
           const totalDuration = 24 * 60 * 60 * 1000;
           const elapsed = endTime - Date.now();
@@ -106,7 +106,7 @@ const App: React.FC = () => {
   }, []);
 
   // Level calculations
-  const currentLevelIndex = () => levelMinPoints.findIndex((_, index) => 
+  const currentLevelIndex = () => levelMinPoints.findIndex((_, index) =>
     points < (levelMinPoints[index + 1] || Infinity)
   );
 
@@ -127,7 +127,7 @@ const App: React.FC = () => {
     if (!autoMiningEndTime) return '00:00';
     const now = Date.now();
     const diff = autoMiningEndTime - now;
-    
+
     if (diff <= 0) {
       setAutoMiningEndTime(null);
       return '00:00';
@@ -135,7 +135,7 @@ const App: React.FC = () => {
 
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   };
 
@@ -161,8 +161,7 @@ const App: React.FC = () => {
     target.setUTCHours(targetHour, 0, 0, 0);
     if (now.getUTCHours() >= targetHour) target.setUTCDate(target.getUTCDate() + 1);
     const diff = target.getTime() - now.getTime();
-    return `${Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0')}:${
-      Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0')}`;
+    return `${Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0')}:${Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0')}`;
   };
 
   // Effects
@@ -184,7 +183,7 @@ const App: React.FC = () => {
 
     const interval = setInterval(() => {
       const now = Date.now();
-      
+
       // Update progress
       const totalDuration = 24 * 60 * 60 * 1000;
       const elapsed = autoMiningEndTime - now;
@@ -242,9 +241,7 @@ const App: React.FC = () => {
 
     const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
-    card.style.transform = `perspective(1000px) rotateX(${
-      -(e.clientY - rect.top - rect.height / 2) / 10}deg) rotateY(${
-      (e.clientX - rect.left - rect.width / 2) / 10}deg)`;
+    card.style.transform = `perspective(1000px) rotateX(${-(e.clientY - rect.top - rect.height / 2) / 10}deg) rotateY(${(e.clientX - rect.left - rect.width / 2) / 10}deg)`;
     setTimeout(() => card.style.transform = '', 100);
 
     setPoints(prevPoints => {
@@ -264,27 +261,33 @@ const App: React.FC = () => {
     const form = e.currentTarget;
     const usernameVal = (form.elements.namedItem('username') as HTMLInputElement).value.trim().toLowerCase();
     const emailVal = (form.elements.namedItem('email') as HTMLInputElement).value.trim().toLowerCase();
+    const passwordVal = (form.elements.namedItem('password') as HTMLInputElement).value;
 
-    const userQuery = query(collection(db, "users"), 
-      where("username", "==", usernameVal), 
-      where("email", "==", emailVal));
+    const userQuery = query(collection(db, "users"),
+      where("username", "==", usernameVal));
     const userSnapshot = await getDocs(userQuery);
 
     if (isLoginMode) {
       if (!userSnapshot.empty) {
         const userDoc = userSnapshot.docs[0].data();
-        localStorage.setItem('username', userDoc.username);
-        localStorage.setItem('email', userDoc.email);
-        setUsername(userDoc.username);
-        setEmail(userDoc.email);
-        setIsNameModalOpen(false);
-        toast.success("Logged in successfully!");
+        if (userDoc.password === passwordVal) {
+          localStorage.setItem('username', userDoc.username);
+          localStorage.setItem('email', userDoc.email);
+          localStorage.setItem('userName', userDoc.name || '');
+          localStorage.setItem('password', passwordVal);
+          setUsername(userDoc.username);
+          setEmail(userDoc.email);
+          setIsNameModalOpen(false);
+          toast.success("Logged in successfully!");
+        } else {
+          toast.error("Invalid password");
+        }
       } else {
         toast.error("No matching user found. Please check credentials.");
       }
     } else {
       if (!userSnapshot.empty) {
-        toast.error("An account already exists with this username/email.");
+        toast.error("Username already taken");
         return;
       }
       const name = (form.elements.namedItem('name') as HTMLInputElement)?.value.trim() || '';
@@ -293,10 +296,16 @@ const App: React.FC = () => {
         name,
         username: usernameVal,
         email: emailVal,
+        password: passwordVal,
         createdAt: new Date().toISOString(),
+        points: 0,
+        autoMiningCount: 0,
+        manualMiningCount: 0
       });
       localStorage.setItem('username', usernameVal);
       localStorage.setItem('email', emailVal);
+      localStorage.setItem('userName', name);
+      localStorage.setItem('password', passwordVal);
       setUsername(usernameVal);
       setEmail(emailVal);
       setIsNameModalOpen(false);
@@ -458,7 +467,7 @@ const App: React.FC = () => {
                           mask: 'radial-gradient(farthest-side, transparent calc(100% - 4px), #fff calc(100% - 3px))'
                         }}></div>
                       )}
-                      
+
                       <div className="w-full h-full rounded-full circle-inner">
                         <img src={mainCharacter} alt="Main Character" className="w-full h-full" />
                       </div>
